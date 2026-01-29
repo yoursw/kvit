@@ -1,0 +1,5 @@
+/kvit
+*.db
+.cache/
+.gopath/
+# Keep go.sum in repo once generated (run: go mod tidy)
