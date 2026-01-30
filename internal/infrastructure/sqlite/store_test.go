@@ -67,6 +67,52 @@ func TestStore_Overwrite(t *testing.T) {
 	}
 }
 
+func TestStore_ListKeys(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "test.db")
+	store, err := NewStore(path)
+	if err != nil {
+		t.Fatalf("NewStore: %v", err)
+	}
+	defer store.Close()
+
+	ctx := context.Background()
+
+	// Empty store
+	keys, err := store.ListKeys(ctx)
+	if err != nil {
+		t.Fatalf("ListKeys on empty: %v", err)
+	}
+	if len(keys) != 0 {
+		t.Errorf("ListKeys on empty = %v, want empty", keys)
+	}
+
+	// Add some keys
+	if err := store.Set(ctx, "b", "1"); err != nil {
+		t.Fatalf("Set b: %v", err)
+	}
+	if err := store.Set(ctx, "a", "2"); err != nil {
+		t.Fatalf("Set a: %v", err)
+	}
+	if err := store.Set(ctx, "c", "3"); err != nil {
+		t.Fatalf("Set c: %v", err)
+	}
+
+	keys, err = store.ListKeys(ctx)
+	if err != nil {
+		t.Fatalf("ListKeys: %v", err)
+	}
+	want := []string{"a", "b", "c"}
+	if len(keys) != len(want) {
+		t.Errorf("ListKeys len = %d, want %d", len(keys), len(want))
+	}
+	for i, key := range keys {
+		if key != want[i] {
+			t.Errorf("ListKeys[%d] = %q, want %q", i, key, want[i])
+		}
+	}
+}
+
 func TestNewStore_createsDB(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "new.db")

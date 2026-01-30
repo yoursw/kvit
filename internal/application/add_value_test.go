@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"sort"
 	"testing"
 
 	"github.com/thatnerdjosh/kvit/internal/domain"
@@ -22,6 +23,16 @@ func (s *mapStore) Set(ctx context.Context, key, value string) error {
 
 func (s *mapStore) Get(ctx context.Context, key string) (string, error) {
 	return s.m[key], nil
+}
+
+func (s *mapStore) ListKeys(ctx context.Context) ([]string, error) {
+	var keys []string
+	for k := range s.m {
+		keys = append(keys, k)
+	}
+	// Sort for consistency
+	sort.Strings(keys)
+	return keys, nil
 }
 
 func (s *mapStore) Close() error { return nil }

@@ -50,6 +50,24 @@ func (s *Store) Get(ctx context.Context, key string) (string, error) {
 	return value, err
 }
 
+// ListKeys implements domain.Store.
+func (s *Store) ListKeys(ctx context.Context) ([]string, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT key FROM kv ORDER BY key`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var keys []string
+	for rows.Next() {
+		var key string
+		if err := rows.Scan(&key); err != nil {
+			return nil, err
+		}
+		keys = append(keys, key)
+	}
+	return keys, rows.Err()
+}
+
 // Close implements domain.Store.
 func (s *Store) Close() error {
 	return s.db.Close()
