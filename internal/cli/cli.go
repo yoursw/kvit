@@ -71,11 +71,19 @@ func Run(args []string) error {
 	defer store.Close()
 
 	ctx := context.Background()
-	if err := application.AddValue(ctx, store, bucket, subkey, value); err != nil {
+	key, err := application.AddValue(ctx, store, bucket, subkey, value)
+	if err != nil {
 		return err
 	}
 
-	key := domain.KeyPath(bucket, subkey)
-	fmt.Printf("stored %s = %s\n", key, value)
+	if domain.IsPluralBucket(bucket) {
+		if subkey != "" {
+			fmt.Printf("appended to %s (%s): %s\n", bucket, subkey, value)
+		} else {
+			fmt.Printf("appended to %s: %s\n", bucket, value)
+		}
+	} else {
+		fmt.Printf("stored %s = %s\n", key, value)
+	}
 	return nil
 }

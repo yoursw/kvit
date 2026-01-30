@@ -5,12 +5,19 @@ Key-value storage CLI with a SQLite backend, designed with Domain Driven Design 
 ## Usage
 
 ```bash
-# Add a value under a bucket (no subkey)
+# Plural bucket (name ending in "s"): append to list
 kvit servers add 127.0.0.1
+kvit servers add 192.168.1.1
 
-# Add a value with a subkey
+# Plural bucket with subkey: new list underneath (servers/personal/:0, ...)
 kvit servers add personal 127.0.0.1
+
+# Singular bucket: single value or keyed subkey
+kvit config add db_url
+kvit config add db postgres://...
 ```
+
+Plural buckets are lists: `add <value>` appends to the bucket list (`servers/:0`, ...); `add <subkey> <value>` appends to a list underneath (`servers/personal/:0`, ...). Singular buckets are single key/value or key/subkey.
 
 Data is stored in `$XDG_DATA_HOME/kvit/data.db` by default (or `~/.local/share/kvit/data.db` if `XDG_DATA_HOME` is unset). Override with `KVIT_DB`:
 
@@ -28,12 +35,12 @@ go test ./...
 
 ## Design
 
-- **Domain** (`internal/domain`): `Entry`, `KeyPath`, and `Store` interface. Backend-agnostic.
-- **Application** (`internal/application`): `AddValue` use case.
+- **Domain** (`internal/domain`): `Entry`, `KeyPath`, `IsPluralBucket`, list keys (`/:len`, `/:0`…). Backend-agnostic.
+- **Application** (`internal/application`): `AddValue` use case (plural = append to list at bucket or bucket/subkey; singular = key/subkey).
 - **Infrastructure** (`internal/infrastructure/sqlite`): SQLite implementation of `Store`. A Redis implementation would satisfy the same interface.
 - **CLI** (`internal/cli`): Parses `kvit <bucket> add [subkey] <value>` and delegates to the use case.
 
-Future: nested/hash operations (e.g. `kvit servers hash personal ...`) are out of scope for this MVP but the domain can be extended.
+Future: nested/hash operations are out of scope for this MVP; list-at-path keeps the model simple.
 
 ---
 
